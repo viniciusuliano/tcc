@@ -36,83 +36,14 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase, onLogout }) 
     };
 
     const displayStats = stats || {
-        total: 4,
-        pending: 1,
-        inProgress: 2,
-        completed: 3
+        total: 0,
+        pending: 0,
+        inProgress: 0,
+        completed: 0
     };
 
-    const defaultOccurrences = [
-        {
-            id: 1,
-            title: 'Levantar parede',
-            description: 'Necessita verificar se aproximadamente 2 metros na parede externa do edificio.',
-            status: 'Em Andamento',
-            priority: 'Alto',
-            location: 'Bloco B',
-            responsible: 'Vinícius Melo',
-            date: '16/10/2025',
-            imageUrl: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop'
-        },
-        {
-            id: 2,
-            title: 'Levantar parede',
-            description: 'Necessita verificar se aproximadamente 2 metros na parede externa do edificio.',
-            status: 'Em Andamento',
-            priority: 'Alto',
-            location: 'Bloco B',
-            responsible: 'Vinícius Melo',
-            date: '16/10/2025',
-            imageUrl: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop'
-        },
-        {
-            id: 3,
-            title: 'Reparo no telhado',
-            description: 'Infiltração detectada no telhado do bloco A.',
-            status: 'Pendente',
-            priority: 'Alto',
-            location: 'Bloco A',
-            responsible: 'João Silva',
-            date: '17/10/2025',
-            imageUrl: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop'
-        },
-        {
-            id: 4,
-            title: 'Pintura externa',
-            description: 'Necessário pintar a fachada do prédio.',
-            status: 'Pendente',
-            priority: 'Médio',
-            location: 'Bloco C',
-            responsible: 'Maria Santos',
-            date: '18/10/2025',
-            imageUrl: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop'
-        },
-        {
-            id: 5,
-            title: 'Troca de janelas',
-            description: 'Substituir janelas quebradas.',
-            status: 'Concluída',
-            priority: 'Baixa',
-            location: 'Bloco D',
-            responsible: 'Pedro Oliveira',
-            date: '19/10/2025',
-            imageUrl: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop'
-        },
-        {
-            id: 6,
-            title: 'Manutenção elétrica',
-            description: 'Verificar instalação elétrica.',
-            status: 'Em Andamento',
-            priority: 'Alto',
-            location: 'Bloco E',
-            responsible: 'Carlos Souza',
-            date: '20/10/2025',
-            imageUrl: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=300&fit=crop'
-        }
-    ];
-
-    const displayOccurrences = occurrences.length > 0 ? occurrences : defaultOccurrences;
-    const displayTotalPages = occurrences.length > 0 ? totalPages : 1;
+    const displayOccurrences = occurrences;
+    const displayTotalPages = totalPages;
 
     return (
         <div className="min-h-screen bg-gray-50">
