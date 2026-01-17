@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { Dashboard } from './presentation/pages/Dashboard';
 import { Login } from './presentation/pages/Login';
-import { AuthProvider } from './presentation/contexts/AuthContext';
+import { AuthProvider, useAuth } from './presentation/contexts/AuthContext';
 import { OccurrenceRepositoryImpl } from './infrastructure/http/OccurrenceRepositoryImpl';
 import { AuthRepositoryImpl } from './infrastructure/http/AuthRepositoryImpl';
 import { GetOccurrences } from './application/use-cases/GetOccurrences';
@@ -17,20 +16,27 @@ const getOccurrencesUseCase = new GetOccurrences(occurrenceRepository);
 const getStatsUseCase = new GetOccurrenceStats(occurrenceRepository);
 const loginUseCase = new LoginUseCase(authRepository);
 
-function App() {
-  const [showLogin, setShowLogin] = useState(true);
+function AppContent() {
+  const { isAuthenticated, loading } = useAuth();
 
+  if (loading) {
+    return null;
+  }
+
+  return isAuthenticated() ? (
+    <Dashboard
+      getOccurrencesUseCase={getOccurrencesUseCase}
+      getStatsUseCase={getStatsUseCase}
+    />
+  ) : (
+    <Login />
+  );
+}
+
+function App() {
   return (
     <AuthProvider loginUseCase={loginUseCase}>
-      {showLogin ? (
-        <Login onLoginSuccess={() => setShowLogin(false)} />
-      ) : (
-        <Dashboard
-          getOccurrencesUseCase={getOccurrencesUseCase}
-          getStatsUseCase={getStatsUseCase}
-          onLogout={() => setShowLogin(true)}
-        />
-      )}
+      <AppContent />
     </AuthProvider>
   );
 }

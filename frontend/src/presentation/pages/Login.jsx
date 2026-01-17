@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../../assets/ifc-logo.png';
 
-export const Login = ({ onLoginSuccess }) => {
+export const Login = () => {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const [error, setError] = useState('');
@@ -16,13 +16,17 @@ export const Login = ({ onLoginSuccess }) => {
 
         const result = await login(email, senha);
 
-        if (result.success) {
-            onLoginSuccess();
-        } else {
+        if (!result.success) {
             setError(result.error);
         }
 
         setLoading(false);
+    };
+
+    const handleGuestAccess = () => {
+        localStorage.setItem('token', 'guest');
+        localStorage.setItem('administrator', JSON.stringify({ tipo: 'guest' }));
+        window.location.reload();
     };
 
     return (
@@ -86,7 +90,7 @@ export const Login = ({ onLoginSuccess }) => {
 
                     <div className="mt-6 text-center">
                         <button
-                            onClick={onLoginSuccess}
+                            onClick={handleGuestAccess}
                             className="text-sm text-gray-600 hover:text-gray-800 underline"
                         >
                             Continuar como visitante
