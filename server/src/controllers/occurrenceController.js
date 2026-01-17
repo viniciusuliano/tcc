@@ -137,3 +137,20 @@ exports.getStats = async (req, res) => {
   }
 };
 
+exports.getOccurrencesByPhone = async (req, res) => {
+  try {
+    const { telefone } = req.params;
+    
+    const occurrences = await Occurrence.find({
+      reporter_whatsapp_id: telefone,
+      status: { $in: ['Pendente', 'Em Andamento'] }
+    }).sort({ data_reporte: -1 });
+    
+    res.json({
+      occurrences,
+      total: occurrences.length
+    });
+  } catch (error) {
+    res.status(500).json({ erro: error.message });
+  }
+};

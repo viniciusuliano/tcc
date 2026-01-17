@@ -6,7 +6,6 @@ const Administrator = require('../models/Administrator');
 const createAdmin = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log('MongoDB conectado');
 
     const nome = process.argv[2] || 'Admin';
     const email = process.argv[3] || 'admin@example.com';
@@ -14,7 +13,6 @@ const createAdmin = async () => {
 
     const existingAdmin = await Administrator.findOne({ email });
     if (existingAdmin) {
-      console.log('Email já cadastrado!');
       process.exit(1);
     }
 
