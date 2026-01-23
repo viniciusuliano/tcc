@@ -1,4 +1,11 @@
-export const OccurrenceCard = ({ occurrence }) => {
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+
+export const OccurrenceCard = ({ occurrence, onStatusUpdate }) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState(occurrence.status);
+    const [isUpdating, setIsUpdating] = useState(false);
+
     const priorityColors = {
         Crítica: 'bg-red-600',
         Alta: 'bg-orange-500',
@@ -7,6 +14,31 @@ export const OccurrenceCard = ({ occurrence }) => {
         Médio: 'bg-yellow-500',
         Baixa: 'bg-green-500',
         Baixo: 'bg-green-500'
+    };
+
+    const statusColors = {
+        'Pendente': 'bg-yellow-100 text-yellow-800',
+        'Em Andamento': 'bg-blue-100 text-blue-800',
+        'Concluída': 'bg-green-100 text-green-800'
+    };
+
+    const handleUpdateStatus = async () => {
+        if (selectedStatus === occurrence.status) {
+            setIsModalOpen(false);
+            return;
+        }
+
+        setIsUpdating(true);
+        try {
+            await onStatusUpdate(occurrence.id, selectedStatus);
+            toast.success('Status atualizado com sucesso!');
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error('Erro ao atualizar status:', error);
+            toast.error('Erro ao atualizar status da ocorrência');
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     return (
@@ -22,7 +54,12 @@ export const OccurrenceCard = ({ occurrence }) => {
                 </span>
             </div>
             <div className="p-4">
-                <h3 className="font-bold text-gray-800 mb-2">{occurrence.title}</h3>
+                <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-gray-800">{occurrence.title}</h3>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${statusColors[occurrence.status]}`}>
+                        {occurrence.status}
+                    </span>
+                </div>
                 <p className="text-sm text-gray-600 mb-4">
                     <span className="text-blue-600 cursor-pointer hover:underline">{occurrence.description}</span>
                 </p>
@@ -47,7 +84,54 @@ export const OccurrenceCard = ({ occurrence }) => {
                         <span>{occurrence.date}</span>
                     </div>
                 </div>
+                {onStatusUpdate && (
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors font-medium"
+                    >
+                        Editar Status
+                    </button>
+                )}
             </div>
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h2 className="text-xl font-bold mb-4">Atualizar Status</h2>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Novo Status
+                            </label>
+                            <select
+                                value={selectedStatus}
+                                onChange={(e) => setSelectedStatus(e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={isUpdating}
+                            >
+                                <option value="Pendente">Pendente</option>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Concluída">Concluída</option>
+                            </select>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                disabled={isUpdating}
+                                className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleUpdateStatus}
+                                disabled={isUpdating}
+                                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+                            >
+                                {isUpdating ? 'Atualizando...' : 'Confirmar'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

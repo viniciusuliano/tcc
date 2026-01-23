@@ -26,6 +26,7 @@ export const Login = () => {
     const handleGuestAccess = () => {
         localStorage.setItem('token', 'guest');
         localStorage.setItem('administrator', JSON.stringify({ tipo: 'guest' }));
+        localStorage.setItem('isGuest', 'true');
         window.location.reload();
     };
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export const useOccurrencesWithFilters = (getOccurrencesUseCase, getStatsUseCase, filters) => {
+export const useOccurrencesWithFilters = (getOccurrencesUseCase, getStatsUseCase, filters, refreshKey = 0) => {
   const [occurrences, setOccurrences] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -10,7 +10,7 @@ export const useOccurrencesWithFilters = (getOccurrencesUseCase, getStatsUseCase
 
   useEffect(() => {
     loadData();
-  }, [filters.status, filters.prioridade, filters.page]);
+  }, [filters.status, filters.prioridade, filters.page, refreshKey]);
 
   const loadData = async () => {
     try {

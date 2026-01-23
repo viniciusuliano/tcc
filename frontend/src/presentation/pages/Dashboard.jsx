@@ -8,11 +8,12 @@ import { useOccurrencesWithFilters } from '../hooks/useOccurrencesWithFilters';
 
 import { useAuth } from '../contexts/AuthContext';
 
-export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase }) => {
-    const { logout } = useAuth();
+export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase, updateOccurrenceStatusUseCase }) => {
+    const { logout, isGuest } = useAuth();
     const [statusFilter, setStatusFilter] = useState('all');
     const [priorityFilter, setPriorityFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
+    const [refreshKey, setRefreshKey] = useState(0);
     const itemsPerPage = 10;
 
     const filters = useMemo(() => ({
@@ -25,8 +26,15 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase }) => {
     const { occurrences, totalPages, stats, loading, error } = useOccurrencesWithFilters(
         getOccurrencesUseCase,
         getStatsUseCase,
-        filters
+        filters,
+        refreshKey
     );
+
+    const handleStatusUpdate = async (id, newStatus) => {
+        if (!updateOccurrenceStatusUseCase) return;
+        await updateOccurrenceStatusUseCase.execute(id, newStatus);
+        setRefreshKey(prev => prev + 1);
+    };
 
     const handleStatusChange = (value) => {
         setStatusFilter(value);
@@ -38,15 +46,12 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase }) => {
         setCurrentPage(1);
     };
 
-    const displayStats = stats || {
+    const defaultStats = {
         total: 0,
         pending: 0,
         inProgress: 0,
         completed: 0
     };
-
-    const displayOccurrences = occurrences;
-    const displayTotalPages = totalPages;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -56,7 +61,7 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <StatCard
                         title="Total de problemas"
-                        value={displayStats.total}
+                        value={(stats || defaultStats).total}
                         icon={
                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -66,7 +71,7 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase }) => {
                     />
                     <StatCard
                         title="Pendentes"
-                        value={displayStats.pending}
+                        value={(stats || defaultStats).pending}
                         icon={
                             <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -76,7 +81,7 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase }) => {
                     />
                     <StatCard
                         title="Em progresso"
-                        value={displayStats.inProgress}
+                        value={(stats || defaultStats).inProgress}
                         icon={
                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -86,7 +91,7 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase }) => {
                     />
                     <StatCard
                         title="Concluídas"
-                        value={displayStats.completed}
+                        value={(stats || defaultStats).completed}
                         icon={
                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -124,14 +129,18 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase }) => {
 
                 <div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {displayOccurrences.map((occurrence) => (
-                            <OccurrenceCard key={occurrence.id} occurrence={occurrence} />
+                        {occurrences.map((occurrence) => (
+                            <OccurrenceCard 
+                                key={occurrence.id} 
+                                occurrence={occurrence}
+                                onStatusUpdate={!isGuest() && updateOccurrenceStatusUseCase ? handleStatusUpdate : null}
+                            />
                         ))}
                     </div>
 
                     <Pagination
                         currentPage={currentPage}
-                        totalPages={displayTotalPages}
+                        totalPages={totalPages}
                         onPageChange={setCurrentPage}
                     />
                 </div>

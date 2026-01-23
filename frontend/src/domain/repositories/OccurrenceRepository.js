@@ -6,5 +6,9 @@ export class OccurrenceRepository {
   async getStats() {
     throw new Error('Method not implemented');
   }
+
+  async updateStatus(id, status) {
+    throw new Error('Method not implemented');
+  }
 }
 

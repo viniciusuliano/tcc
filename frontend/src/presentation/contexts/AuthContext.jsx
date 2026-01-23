@@ -26,6 +26,7 @@ export const AuthProvider = ({ children, loginUseCase }) => {
 
             localStorage.setItem('token', result.token);
             localStorage.setItem('administrator', JSON.stringify(result.administrator));
+            localStorage.removeItem('isGuest');
 
             return { success: true };
         } catch (error) {
@@ -38,6 +39,7 @@ export const AuthProvider = ({ children, loginUseCase }) => {
         setAdministrator(null);
         localStorage.removeItem('token');
         localStorage.removeItem('administrator');
+        localStorage.removeItem('isGuest');
         if (callback) callback();
     };
 
@@ -45,8 +47,12 @@ export const AuthProvider = ({ children, loginUseCase }) => {
         return !!token && !!administrator;
     };
 
+    const isGuest = () => {
+        return localStorage.getItem('isGuest') === 'true';
+    };
+
     return (
-        <AuthContext.Provider value={{ administrator, token, login, logout, isAuthenticated, loading }}>
+        <AuthContext.Provider value={{ administrator, token, login, logout, isAuthenticated, isGuest, loading }}>
             {children}
         </AuthContext.Provider>
     );
