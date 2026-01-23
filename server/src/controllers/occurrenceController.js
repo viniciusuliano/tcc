@@ -3,18 +3,13 @@ const occurrenceService = require('../services/occurrenceService');
 
 exports.createOccurrence = async (req, res) => {
   try {
-    const { descricao, local } = req.body;
-    
-    const similarOccurrence = await occurrenceService.findSimilarOccurrence(descricao, local);
+    const { descricao, local, tipo } = req.body;
+    const similarOccurrence = await occurrenceService.findSimilarOccurrence(descricao, local, tipo);
     
     if (similarOccurrence) {
       similarOccurrence.contador_reports_similares += 1;
-      similarOccurrence.prioridade = occurrenceService.prioritizeOccurrence({
-        tipo: similarOccurrence.tipo,
-        contador_reports_similares: similarOccurrence.contador_reports_similares
-      });
+      similarOccurrence.prioridade = occurrenceService.prioritizeOccurrence(similarOccurrence);
       similarOccurrence.data_atualizacao = new Date();
-      
       await similarOccurrence.save();
       
       return res.status(200).json({
@@ -24,11 +19,10 @@ exports.createOccurrence = async (req, res) => {
     }
     
     const id_ocorrencia = await occurrenceService.generateNextOccurrenceId();
-    
     const occurrence = new Occurrence({
       ...req.body,
       id_ocorrencia,
-      prioridade: 'Baixa'
+      prioridade: occurrenceService.prioritizeOccurrence(req.body)
     });
     
     await occurrence.save();
@@ -55,31 +49,25 @@ exports.listOccurrences = async (req, res) => {
 exports.filterOccurrences = async (req, res) => {
   try {
     const { status, prioridade, page = 1, limit = 10 } = req.query;
-        
     const query = {};
     
-    if (status && status !== 'all') {
-      query.status = status;
-    }
+    if (status && status !== 'all') query.status = status;
+    if (prioridade && prioridade !== 'all') query.prioridade = prioridade;
     
-    if (prioridade && prioridade !== 'all') {
-      query.prioridade = prioridade;
-    }
-    
-    
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
     
     const [occurrences, total] = await Promise.all([
-      Occurrence.find(query).sort({ data_reporte: -1 }).skip(skip).limit(parseInt(limit)),
+      Occurrence.find(query).sort({ data_reporte: -1 }).skip(skip).limit(limitNum),
       Occurrence.countDocuments(query)
     ]);
-    
     
     res.json({
       occurrences,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / parseInt(limit))
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum)
     });
   } catch (error) {
     res.status(500).json({ erro: error.message });
