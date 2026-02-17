@@ -2,18 +2,22 @@ import { useState, useMemo } from 'react';
 import { Header } from '../components/Header';
 import { StatCard } from '../components/StatCard';
 import { OccurrenceCard } from '../components/OccurrenceCard';
+import { OccurrenceDetailsModal } from '../components/OccurrenceDetailsModal';
+import { EmptyState } from '../components/EmptyState';
 import { FilterDropdown } from '../components/FilterDropdown';
 import { Pagination } from '../components/Pagination';
 import { useOccurrencesWithFilters } from '../hooks/useOccurrencesWithFilters';
 
 import { useAuth } from '../contexts/AuthContext';
 
-export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase, updateOccurrenceStatusUseCase }) => {
+export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase, updateOccurrenceStatusUseCase, occurrenceRepository }) => {
     const { logout, isGuest } = useAuth();
     const [statusFilter, setStatusFilter] = useState('all');
     const [priorityFilter, setPriorityFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [selectedOccurrenceId, setSelectedOccurrenceId] = useState(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const itemsPerPage = 10;
 
     const filters = useMemo(() => ({
@@ -30,6 +34,20 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase, updateOccurr
         refreshKey
     );
 
+    const handleViewDetails = (occurrenceId) => {
+        setSelectedOccurrenceId(occurrenceId);
+        setIsDetailsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsDetailsModalOpen(false);
+        setSelectedOccurrenceId(null);
+    };
+
+    const handleOccurrenceUpdate = () => {
+        setRefreshKey(prev => prev + 1);
+    };
+
     const handleStatusUpdate = async (id, newStatus) => {
         if (!updateOccurrenceStatusUseCase) return;
         await updateOccurrenceStatusUseCase.execute(id, newStatus);
@@ -43,6 +61,12 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase, updateOccurr
 
     const handlePriorityChange = (value) => {
         setPriorityFilter(value);
+        setCurrentPage(1);
+    };
+
+    const handleClearFilters = () => {
+        setStatusFilter('all');
+        setPriorityFilter('all');
         setCurrentPage(1);
     };
 
@@ -128,23 +152,48 @@ export const Dashboard = ({ getOccurrencesUseCase, getStatsUseCase, updateOccurr
                 </div>
 
                 <div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {occurrences.map((occurrence) => (
-                            <OccurrenceCard 
-                                key={occurrence.id} 
-                                occurrence={occurrence}
-                                onStatusUpdate={!isGuest() && updateOccurrenceStatusUseCase ? handleStatusUpdate : null}
-                            />
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div className="flex justify-center items-center py-16">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        </div>
+                    ) : occurrences.length === 0 ? (
+                        <EmptyState 
+                            statusFilter={statusFilter}
+                            priorityFilter={priorityFilter}
+                            onClearFilters={handleClearFilters}
+                        />
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {occurrences.map((occurrence) => (
+                                    <OccurrenceCard 
+                                        key={occurrence.id} 
+                                        occurrence={occurrence}
+                                        onViewDetails={!isGuest() ? handleViewDetails : null}
+                                    />
+                                ))}
+                            </div>
 
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={setCurrentPage}
-                    />
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={setCurrentPage}
+                            />
+                        </>
+                    )}
                 </div>
             </main>
+
+            {/* Modal de Detalhes */}
+            {!isGuest() && occurrenceRepository && (
+                <OccurrenceDetailsModal
+                    occurrenceId={selectedOccurrenceId}
+                    isOpen={isDetailsModalOpen}
+                    onClose={handleCloseModal}
+                    occurrenceRepository={occurrenceRepository}
+                    onUpdate={handleOccurrenceUpdate}
+                />
+            )}
         </div>
     );
 };

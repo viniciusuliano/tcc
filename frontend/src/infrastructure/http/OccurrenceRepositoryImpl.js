@@ -32,7 +32,7 @@ export class OccurrenceRepositoryImpl extends OccurrenceRepository {
         status: item.status,
         priority: item.prioridade,
         location: item.local,
-        responsible: 'Não atribuído',
+        responsible: item.setor_responsavel || 'Não atribuído',
         date: new Date(item.data_reporte).toLocaleDateString('pt-BR'),
         imageUrl: item.evidencias?.[0] || DEFAULT_IMAGE_URL
       })),
@@ -44,6 +44,39 @@ export class OccurrenceRepositoryImpl extends OccurrenceRepository {
   async getStats() {
     const response = await fetch(`${this.apiUrl}/ocorrencias/stats`);
     return await response.json();
+  }
+
+  async getById(id) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${this.apiUrl}/ocorrencias/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao buscar detalhes da ocorrência');
+    }
+
+    const data = await response.json();
+    
+    return {
+      id: data._id,
+      id_ocorrencia: data.id_ocorrencia,
+      title: data.tipo,
+      description: data.descricao,
+      status: data.status,
+      priority: data.prioridade,
+      location: data.local,
+      responsible: data.setor_responsavel || 'Não atribuído',
+      date: new Date(data.data_reporte).toLocaleDateString('pt-BR'),
+      dateTime: data.data_reporte,
+      updateDate: data.data_atualizacao ? new Date(data.data_atualizacao).toLocaleDateString('pt-BR') : null,
+      imageUrl: data.evidencias?.[0] || DEFAULT_IMAGE_URL,
+      evidences: data.evidencias || [],
+      reporterPhone: data.reporter_whatsapp_id,
+      similarReportsCount: data.contador_reports_similares || 0
+    };
   }
 
   async updateStatus(id, status) {
@@ -59,6 +92,42 @@ export class OccurrenceRepositoryImpl extends OccurrenceRepository {
 
     if (!response.ok) {
       throw new Error('Erro ao atualizar status da ocorrência');
+    }
+
+    return await response.json();
+  }
+
+  async updateResponsible(id, setor_responsavel) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${this.apiUrl}/ocorrencias/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ setor_responsavel })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao atualizar responsável da ocorrência');
+    }
+
+    return await response.json();
+  }
+
+  async updateOccurrence(id, updates) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${this.apiUrl}/ocorrencias/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(updates)
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao atualizar ocorrência');
     }
 
     return await response.json();

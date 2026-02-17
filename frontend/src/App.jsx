@@ -31,6 +31,7 @@ function AppContent() {
       getOccurrencesUseCase={getOccurrencesUseCase}
       getStatsUseCase={getStatsUseCase}
       updateOccurrenceStatusUseCase={updateOccurrenceStatusUseCase}
+      occurrenceRepository={occurrenceRepository}
     />
   ) : (
     <Login />
