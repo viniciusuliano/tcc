@@ -48,6 +48,10 @@ const occurrenceSchema = new mongoose.Schema({
   contador_reports_similares: {
     type: Number,
     default: 0
+  },
+  setor_responsavel: {
+    type: String,
+    default: null
   }
 });
 
